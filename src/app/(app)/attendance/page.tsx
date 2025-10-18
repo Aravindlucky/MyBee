@@ -1,76 +1,64 @@
-import { mockCourses, mockAttendance, mockScheduledSessions } from '@/lib/data';
-import type { AttendanceRecord, Course, AttendanceStatus } from '@/lib/types';
+'use client';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+  CardFooter,
+} from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { format, parseISO, isBefore, startOfToday, getDay } from 'date-fns';
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from '@/components/ui/chart';
+import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
+import { mockCourses, mockAttendance, mockScheduledSessions } from '@/lib/data';
+import { isBefore, parseISO, startOfToday } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
-const TODAY = startOfToday();
-// Let's use a fixed date for mock data consistency, e.g., Oct 10, 2024
 const MOCK_TODAY = new Date('2024-10-10T00:00:00.000Z');
 
-// This function generates the date columns for our table
-const getRecentSessionDates = (courseId: string) => {
-  return mockScheduledSessions
-    .filter(s => s.courseId === courseId)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 8); // Displaying up to 8 sessions like in the image
-};
-
-const statusMap: Record<AttendanceStatus, { label: string; short: string; className: string }> = {
-  'Present': { label: 'Present', short: 'P', className: 'bg-green-100 text-green-800 border-green-300' },
-  'Absent': { label: 'Absent', short: 'A', className: 'bg-red-100 text-red-800 border-red-300' },
-  'Excused': { label: 'Excused', short: 'E', className: 'bg-blue-100 text-blue-800 border-blue-300' },
-  'Not Taken': { label: 'Attendance Not Taken', short: 'NA', className: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
-  'Future': { label: 'Future', short: '-', className: 'bg-gray-100 text-gray-500 border-gray-300' },
-};
-
 export default function AttendancePage() {
+  const coursesWithAttendance = mockCourses.map((course) => {
+    const conductedSessions = mockScheduledSessions.filter(
+      (s) => s.courseId === course.id && isBefore(parseISO(s.date), MOCK_TODAY)
+    ).length;
+    const attendedSessions = mockAttendance.filter(
+      (r) => r.courseId === course.id && r.status === 'Present'
+    ).length;
 
-  const coursesWithAttendance = mockCourses.map(course => {
-    const scheduledSessions = mockScheduledSessions.filter(s => s.courseId === course.id);
-    const conductedSessions = scheduledSessions.filter(s => isBefore(parseISO(s.date), MOCK_TODAY));
-    const attendedRecords = mockAttendance.filter(r => r.courseId === course.id && r.status === 'Present');
+    const attendancePercentage =
+      conductedSessions > 0 ? (attendedSessions / conductedSessions) * 100 : 100;
 
-    const sessionDetails = getRecentSessionDates(course.id).map(session => {
-      const record = mockAttendance.find(r => r.courseId === course.id && r.date === session.date);
-      let status: AttendanceStatus;
-      if (isBefore(parseISO(session.date), MOCK_TODAY)) {
-        status = record ? record.status : 'Not Taken';
-      } else {
-        status = 'Future';
-      }
-      return {
-        date: session.date,
-        status,
-      };
-    });
+    const chartData = [
+      {
+        status: 'Attended',
+        value: attendedSessions,
+        fill: 'hsl(var(--primary))',
+        label: `${attendedSessions}`,
+      },
+      {
+        status: 'Missed',
+        value: conductedSessions - attendedSessions,
+        fill: 'hsl(var(--muted))',
+        label: `${conductedSessions - attendedSessions}`,
+      },
+    ];
 
     return {
       ...course,
-      scheduled: scheduledSessions.length,
-      conducted: conductedSessions.length,
-      attended: attendedRecords.length,
-      sessions: sessionDetails,
+      conductedSessions,
+      attendedSessions,
+      attendancePercentage,
+      chartData,
+      isBelowThreshold: attendancePercentage < 75,
     };
   });
-  
-  // We need a consistent set of dates for the header, let's take it from the first course
-  const dateColumns = coursesWithAttendance.length > 0 ? coursesWithAttendance[0].sessions : [];
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -81,70 +69,59 @@ export default function AttendancePage() {
         </p>
       </div>
 
-      <Card className="rounded-xl">
-        <CardHeader>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            {Object.values(statusMap).filter(s => s.label !== 'Future').map(status => (
-              <div key={status.label} className="flex items-center gap-2">
-                <Badge variant="outline" className={cn("size-6 p-0 items-center justify-center font-bold", status.className)}>
-                  {status.short}
-                </Badge>
-                <span className="text-sm text-muted-foreground">{status.label}</span>
-              </div>
-            ))}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table className="whitespace-nowrap">
-              <TableHeader>
-                <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="w-[200px] text-foreground font-bold bg-primary/20">Subject</TableHead>
-                  <TableHead className="text-center text-foreground font-bold bg-yellow-400/30">Scheduled Sessions</TableHead>
-                  <TableHead className="text-center text-foreground font-bold bg-blue-400/30">Conducted Sessions</TableHead>
-                  <TableHead className="text-center text-foreground font-bold bg-primary/30">Attended Sessions</TableHead>
-                  {dateColumns.map(({ date }) => (
-                    <TableHead key={date} className="text-center text-foreground font-bold bg-primary/20">
-                      {format(parseISO(date), 'd MMM')}
-                      <br/>
-                      {format(parseISO(date), 'EEE')}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {coursesWithAttendance.map(course => (
-                  <TableRow key={course.id}>
-                    <TableCell className="font-medium">{course.title}</TableCell>
-                    <TableCell className="text-center font-medium">{course.scheduled}</TableCell>
-                    <TableCell className="text-center font-medium">{course.conducted}</TableCell>
-                    <TableCell className="text-center font-medium">{course.attended}</TableCell>
-                    {course.sessions.map((session, idx) => {
-                      const statusInfo = statusMap[session.status];
-                      return (
-                        <TableCell key={`${course.id}-${session.date}-${idx}`} className="text-center">
-                           <Badge variant="outline" className={cn("size-7 p-0 items-center justify-center font-bold text-xs", statusInfo.className)}>
-                            {statusInfo.short}
-                          </Badge>
-                        </TableCell>
-                      )
-                    })}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-       <Card className="rounded-xl">
-          <CardHeader>
-            <CardTitle>Leaves</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">Data Not Found</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {coursesWithAttendance.map((course) => (
+          <Card key={course.id} className="flex flex-col rounded-xl hover:shadow-lg transition-shadow">
+             <Link href={`/attendance/${course.id}`} className="flex flex-col h-full group">
+                <CardHeader>
+                  <CardTitle className="font-headline text-xl">{course.title}</CardTitle>
+                  <CardDescription>{course.code}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-grow flex flex-col justify-center">
+                  <div className="h-40">
+                     <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        layout="vertical"
+                        data={course.chartData}
+                        margin={{ left: 10, right: 30 }}
+                        stackOffset="expand"
+                      >
+                        <XAxis type="number" hide domain={[0, 1]} />
+                        <YAxis type="category" dataKey="status" hide />
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent hideLabel />}
+                        />
+                        <Bar dataKey="value" stackId="a" radius={[5, 5, 5, 5]}>
+                           <LabelList 
+                              dataKey="label" 
+                              position="right" 
+                              offset={10} 
+                              className="fill-foreground font-semibold"
+                            />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex justify-around text-sm text-muted-foreground mt-2">
+                    <span>Attended: {course.attendedSessions}</span>
+                    <span>Conducted: {course.conductedSessions}</span>
+                  </div>
+                   {course.isBelowThreshold && (
+                    <p className="text-sm font-semibold text-destructive text-center mt-4">
+                      Attendance is below 75%!
+                    </p>
+                  )}
+                </CardContent>
+                <CardFooter>
+                   <div className="flex w-full items-center text-sm font-bold text-primary group-hover:underline">
+                      View Details <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+                    </div>
+                </CardFooter>
+             </Link>
+          </Card>
+        ))}
+      </div>
     </main>
   );
 }
