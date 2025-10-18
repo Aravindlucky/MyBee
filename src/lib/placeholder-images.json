@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "dashboard-courses",
+      "description": "A stack of colorful books on a wooden desk",
+      "imageUrl": "https://images.unsplash.com/photo-1640726803445-1e20a4b1ac6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzdHVkeSUyMGJvb2tzfGVufDB8fHx8MTc2MDc2MzE0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "study books"
+    },
+    {
+      "id": "dashboard-cases",
+      "description": "Diverse group of professionals collaborating around a table with laptops and documents",
+      "imageUrl": "https://images.unsplash.com/photo-1603202662747-00e33e7d1468?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxidXNpbmVzcyUyMG1lZXRpbmd8ZW58MHx8fHwxNzYwNzMxMTc4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "business meeting"
+    },
+    {
+      "id": "dashboard-skills",
+      "description": "A person's hands typing on a laptop with code on the screen",
+      "imageUrl": "https://images.unsplash.com/photo-1523800503107-5bc3ba2a6f81?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsYXB0b3AlMjBjb2RlfGVufDB8fHx8MTc2MDczMTA5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laptop code"
+    },
+    {
+      "id": "dashboard-goals",
+      "description": "A mountain peak at sunrise, symbolizing achievement",
+      "imageUrl": "https://images.unsplash.com/photo-1558883493-8b86ff880fec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb3VudGFpbiUyMHN1bnJpc2V8ZW58MHx8fHwxNzYwNzQzNzc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mountain sunrise"
+    },
+    {
+      "id": "dashboard-journal",
+      "description": "An open journal and a pen on a rustic wooden table",
+      "imageUrl": "https://images.unsplash.com/photo-1581447109266-0498adb54e6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxvcGVuJTIwam91cm5hbHxlbnwwfHx8fDE3NjA3MzE0NTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "open journal"
+    }
+  ]
 }
