@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Book, BookOpen, FileText, Flag, LayoutDashboard, Target, UserCheck } from 'lucide-react';
+import { Book, BookOpen, FileText, Flag, LayoutDashboard, Target } from 'lucide-react';
 
 import {
   Sidebar,
@@ -16,7 +16,6 @@ import {
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/courses', label: 'Courses', icon: BookOpen },
-  { href: '/attendance', label: 'Attendance', icon: UserCheck },
   { href: '/case-studies', label: 'Case Studies', icon: FileText },
   { href: '/skills', label: 'Skill Tracker', icon: Target },
   { href: '/goals', label: 'Goal Setting', icon: Flag },
