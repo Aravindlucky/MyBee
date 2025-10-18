@@ -12,53 +12,72 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
 import { mockCourses, mockAttendance, mockScheduledSessions } from '@/lib/data';
 import { isBefore, parseISO, startOfToday } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-const MOCK_TODAY = new Date('2024-10-10T00:00:00.000Z');
+type CourseWithAttendance = (typeof mockCourses)[0] & {
+  conductedSessions: number;
+  attendedSessions: number;
+  attendancePercentage: number;
+  chartData: any[];
+  isBelowThreshold: boolean;
+};
+
 
 export default function AttendancePage() {
-  const coursesWithAttendance = mockCourses.map((course) => {
-    const conductedSessions = mockScheduledSessions.filter(
-      (s) => s.courseId === course.id && isBefore(parseISO(s.date), MOCK_TODAY)
-    ).length;
-    const attendedSessions = mockAttendance.filter(
-      (r) => r.courseId === course.id && r.status === 'Present'
-    ).length;
+  const [coursesWithAttendance, setCoursesWithAttendance] = useState<CourseWithAttendance[]>([]);
+  const [isClient, setIsClient] = useState(false);
 
-    const attendancePercentage =
-      conductedSessions > 0 ? (attendedSessions / conductedSessions) * 100 : 100;
+  useEffect(() => {
+    setIsClient(true);
+    const today = startOfToday();
+    const processedCourses = mockCourses.map((course) => {
+      const conductedSessions = mockScheduledSessions.filter(
+        (s) => s.courseId === course.id && isBefore(parseISO(s.date), today)
+      ).length;
+      const attendedSessions = mockAttendance.filter(
+        (r) => r.courseId === course.id && r.status === 'Present'
+      ).length;
 
-    const chartData = [
-      {
-        status: 'Attended',
-        value: attendedSessions,
-        fill: 'hsl(var(--primary))',
-        label: `${attendedSessions}`,
-      },
-      {
-        status: 'Missed',
-        value: conductedSessions - attendedSessions,
-        fill: 'hsl(var(--muted))',
-        label: `${conductedSessions - attendedSessions}`,
-      },
-    ];
+      const attendancePercentage =
+        conductedSessions > 0 ? (attendedSessions / conductedSessions) * 100 : 100;
 
-    return {
-      ...course,
-      conductedSessions,
-      attendedSessions,
-      attendancePercentage,
-      chartData,
-      isBelowThreshold: attendancePercentage < 75,
-    };
-  });
+      const chartData = [
+        {
+          status: 'Attended',
+          value: attendedSessions,
+          fill: 'hsl(var(--primary))',
+          label: `${attendedSessions}`,
+        },
+        {
+          status: 'Missed',
+          value: conductedSessions - attendedSessions,
+          fill: 'hsl(var(--muted))',
+          label: `${conductedSessions - attendedSessions}`,
+        },
+      ];
+
+      return {
+        ...course,
+        conductedSessions,
+        attendedSessions,
+        attendancePercentage,
+        chartData,
+        isBelowThreshold: attendancePercentage < 75,
+      };
+    });
+    setCoursesWithAttendance(processedCourses);
+  }, []);
+
+  if (!isClient) {
+    // You can render a loading skeleton here if you want
+    return null;
+  }
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">

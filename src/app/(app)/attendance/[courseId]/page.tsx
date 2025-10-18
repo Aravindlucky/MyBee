@@ -19,21 +19,11 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { format, parseISO, isBefore } from 'date-fns';
+import { format, parseISO, isBefore, startOfToday } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { notFound } from 'next/navigation';
-
-const MOCK_TODAY = new Date('2024-10-10T00:00:00.000Z');
-
-// This function generates the date columns for our table
-const getRecentSessionDates = (courseId: string) => {
-  return mockScheduledSessions
-    .filter(s => s.courseId === courseId)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 8); // Displaying up to 8 sessions like in the image
-};
 
 const statusMap: Record<AttendanceStatus, { label: string; short: string; className: string }> = {
   'Present': { label: 'Present', short: 'P', className: 'bg-green-100 text-green-800 border-green-300' },
@@ -49,15 +39,21 @@ export default function AttendanceDetailPage({ params }: { params: { courseId: s
   if (!course) {
     notFound();
   }
+  
+  const today = startOfToday();
 
   const scheduledSessions = mockScheduledSessions.filter(s => s.courseId === course.id);
-  const conductedSessions = scheduledSessions.filter(s => isBefore(parseISO(s.date), MOCK_TODAY));
+  const conductedSessions = scheduledSessions.filter(s => isBefore(parseISO(s.date), today));
   const attendedRecords = mockAttendance.filter(r => r.courseId === course.id && r.status === 'Present');
 
-  const sessionDetails = getRecentSessionDates(course.id).map(session => {
+  const sessionDetails = mockScheduledSessions
+    .filter(s => s.courseId === course.id)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 8) // Displaying up to 8 sessions
+    .map(session => {
     const record = mockAttendance.find(r => r.courseId === course.id && r.date === session.date);
     let status: AttendanceStatus;
-    if (isBefore(parseISO(session.date), MOCK_TODAY)) {
+    if (isBefore(parseISO(session.date), today)) {
       status = record ? record.status : 'Not Taken';
     } else {
       status = 'Future';
