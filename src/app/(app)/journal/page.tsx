@@ -2,13 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { mockJournalEntries } from "@/lib/data";
 import { useEffect, useState } from "react";
 
 export default function JournalPage() {
-  const [today, setToday] = useState(new Date());
+  const [today, setToday] = useState<Date | null>(null);
 
   useEffect(() => {
     setToday(new Date());
@@ -28,7 +27,11 @@ export default function JournalPage() {
            <Card className="rounded-xl sticky top-24">
             <CardHeader>
               <CardTitle>Today's Entry</CardTitle>
-              <CardDescription>{today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
+              <CardDescription>
+                {today 
+                  ? today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                  : 'Loading...'}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea placeholder="What's on your mind? What did you learn today?" rows={8}/>
@@ -41,7 +44,7 @@ export default function JournalPage() {
 
         <div className="lg:col-span-2 space-y-6">
             <h2 className="font-headline text-2xl font-semibold">Past Entries</h2>
-            {mockJournalEntries.map((entry, index) => (
+            {mockJournalEntries.map((entry) => (
                 <Card key={entry.id} className="rounded-xl">
                     <CardHeader>
                         <CardTitle className="text-lg">
