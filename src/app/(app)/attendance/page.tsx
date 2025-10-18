@@ -84,7 +84,7 @@ export default function AttendancePage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {coursesWithAttendance.map((course) => (
           <Card key={course.id} className="flex flex-col rounded-xl hover:shadow-lg transition-shadow">
-             <Link href={`/attendance/${course.id}`} className="flex flex-col h-full group">
+             <div className="flex flex-col h-full group">
                 <CardHeader>
                   <CardTitle className="font-headline text-xl">{course.title}</CardTitle>
                   <CardDescription>{course.code}</CardDescription>
@@ -125,12 +125,7 @@ export default function AttendancePage() {
                     </p>
                   )}
                 </CardContent>
-                <CardFooter>
-                   <div className="flex w-full items-center text-sm font-bold text-primary group-hover:underline">
-                      View Details <ArrowRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
-                    </div>
-                </CardFooter>
-             </Link>
+             </div>
           </Card>
         ))}
       </div>
