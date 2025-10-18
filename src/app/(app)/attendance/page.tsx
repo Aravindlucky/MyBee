@@ -31,10 +31,8 @@ type CourseWithAttendance = (typeof mockCourses)[0] & {
 
 export default function AttendancePage() {
   const [coursesWithAttendance, setCoursesWithAttendance] = useState<CourseWithAttendance[]>([]);
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
     const today = startOfToday();
     const processedCourses = mockCourses.map((course) => {
       const conductedSessions = mockScheduledSessions.filter(
@@ -73,11 +71,6 @@ export default function AttendancePage() {
     });
     setCoursesWithAttendance(processedCourses);
   }, []);
-
-  if (!isClient) {
-    // You can render a loading skeleton here if you want
-    return null;
-  }
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">

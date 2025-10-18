@@ -4,14 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { mockJournalEntries } from "@/lib/data";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function JournalPage() {
-  const [today, setToday] = useState<Date | null>(null);
-
-  useEffect(() => {
-    setToday(new Date());
-  }, []);
+  const [today] = useState(new Date());
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -28,9 +24,7 @@ export default function JournalPage() {
             <CardHeader>
               <CardTitle>Today's Entry</CardTitle>
               <CardDescription>
-                {today 
-                  ? today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-                  : 'Loading...'}
+                {today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </CardDescription>
             </CardHeader>
             <CardContent>
