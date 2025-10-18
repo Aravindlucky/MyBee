@@ -1,4 +1,4 @@
-import type { Course, CaseStudySummary, Skill, Objective } from './types';
+import type { Course, CaseStudySummary, Skill, Objective, AttendanceRecord } from './types';
 
 export const mockCourses: Course[] = [
   { id: '1', title: 'Corporate Finance', code: 'FINC-580', professor: 'Dr. Anya Sharma', term: 'Fall 2024' },
@@ -45,4 +45,17 @@ export const mockObjectives: Objective[] = [
 export const mockJournalEntries = [
   { id: 'je1', date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), content: 'Today we discussed Porter\'s Five Forces in strategy class. It was interesting to apply it to the airline industry. Need to review the concept of "supplier power" more thoroughly.' },
   { id: 'je2', date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), content: 'Had an informational interview with a PM at Google. She emphasized the importance of user empathy and storytelling. It was incredibly insightful. I should focus on developing these soft skills.' },
+];
+
+
+export const mockAttendance: AttendanceRecord[] = [
+  { id: 'att1', courseId: '1', date: '2024-09-03', classType: 'Lecture', status: 'Present' },
+  { id: 'att2', courseId: '1', date: '2024-09-05', classType: 'Lecture', status: 'Present' },
+  { id: 'att3', courseId: '1', date: '2024-09-10', classType: 'Lecture', status: 'Absent' },
+  { id: 'att4', courseId: '1', date: '2024-09-12', classType: 'Lecture', status: 'Present' },
+  { id: 'att5', courseId: '2', date: '2024-09-04', classType: 'Lecture', status: 'Present' },
+  { id: 'att6', courseId: '2', date: '2024-09-06', classType: 'Discussion', status: 'Excused' },
+  { id: 'att7', courseId: '2', date: '2024-09-11', classType: 'Lecture', status: 'Present' },
+  { id: 'att8', courseId: '3', date: '2024-09-02', classType: 'Lab', status: 'Present' },
+  { id: 'att9', courseId: '3', date: '2024-09-09', classType: 'Lab', status: 'Present' },
 ];

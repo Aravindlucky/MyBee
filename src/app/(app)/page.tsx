@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowRight, Book, BookOpen, FileText, Flag, Target } from "lucide-react";
+import { ArrowRight, Book, BookOpen, FileText, Flag, Target, UserCheck } from "lucide-react";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const features = [
@@ -18,6 +18,13 @@ const features = [
     href: "/courses",
     icon: BookOpen,
     image: PlaceHolderImages.find(p => p.id === 'dashboard-courses'),
+  },
+  {
+    title: "Attendance Tracker",
+    description: "Monitor your attendance for each course to stay on track.",
+    href: "/attendance",
+    icon: UserCheck,
+    image: PlaceHolderImages.find(p => p.id === 'dashboard-journal'), // Reusing an image for now
   },
   {
     title: "Case Study Analyzer",
