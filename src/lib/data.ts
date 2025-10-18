@@ -1,11 +1,70 @@
-import type { Course, CaseStudySummary, Skill, Objective, AttendanceRecord } from './types';
+import type { Course, CaseStudySummary, Skill, Objective, AttendanceRecord, JournalEntry } from './types';
 
 export const mockCourses: Course[] = [
-  { id: '1', title: 'Corporate Finance', code: 'FINC-580', professor: 'Dr. Anya Sharma', term: 'Fall 2024' },
-  { id: '2', title: 'Marketing Strategy', code: 'MKTG-550', professor: 'Dr. Ben Carter', term: 'Fall 2024' },
-  { id: '3', title: 'Operations Management', code: 'OPNS-612', professor: 'Dr. Chloe Davis', term: 'Fall 2024' },
-  { id: '4', title: 'Data Analytics', code: 'DECS-621', professor: 'Dr. Evan Foster', term: 'Spring 2025' },
+  { id: '1', title: 'Supply Chain Management', code: 'OPNS-612', professor: 'Dr. Chloe Davis', term: 'Fall 2024' },
+  { id: '2', title: 'Corporate Finance', code: 'FINC-580', professor: 'Dr. Anya Sharma', term: 'Fall 2024' },
+  { id: '3', title: 'Marketing Strategy', code: 'MKTG-550', professor: 'Dr. Ben Carter', term: 'Fall 2024' },
 ];
+
+export const mockScheduledSessions: { courseId: string, date: string, classType: ClassType }[] = [
+    // SCM
+    { courseId: '1', date: '2024-09-22', classType: 'Lecture' },
+    { courseId: '1', date: '2024-09-23', classType: 'Lecture' },
+    { courseId: '1', date: '2024-09-29', classType: 'Lecture' },
+    { courseId: '1', date: '2024-09-30', classType: 'Lecture' },
+    { courseId: '1', date: '2024-10-06', classType: 'Lecture' },
+    { courseId: '1', date: '2024-10-07', classType: 'Lecture' },
+    { courseId: '1', date: '2024-10-13', classType: 'Lecture' },
+    { courseId: '1', date: '2024-10-14', classType: 'Lecture' },
+
+    // Finance
+    { courseId: '2', date: '2024-09-22', classType: 'Lecture' },
+    { courseId: '2', date: '2024-09-24', classType: 'Lecture' },
+    { courseId: '2', date: '2024-09-29', classType: 'Lecture' },
+    { courseId: '2', date: '2024-10-01', classType: 'Lecture' },
+    { courseId: '2', date: '2024-10-06', classType: 'Lecture' },
+    { courseId: '2', date: '2024-10-08', classType: 'Lecture' },
+    { courseId: '2', date: '2024-10-13', classType: 'Lecture' },
+    { courseId: '2', date: '2024-10-15', classType: 'Lecture' },
+
+     // Marketing
+    { courseId: '3', date: '2024-09-23', classType: 'Lecture' },
+    { courseId: '3', date: '2024-09-25', classType: 'Lecture' },
+    { courseId: '3', date: '2024-09-30', classType: 'Lecture' },
+    { courseId: '3', date: '2024-10-02', classType: 'Lecture' },
+    { courseId: '3', date: '2024-10-07', classType: 'Lecture' },
+    { courseId: '3', date: '2024-10-09', classType: 'Lecture' },
+    { courseId: '3', date: '2024-10-14', classType: 'Lecture' },
+    { courseId: '3', date: '2024-10-16', classType: 'Lecture' },
+];
+
+
+export const mockAttendance: AttendanceRecord[] = [
+  // SCM
+  { id: 'att1', courseId: '1', date: '2024-09-22', classType: 'Lecture', status: 'Present' },
+  { id: 'att2', courseId: '1', date: '2024-09-23', classType: 'Lecture', status: 'Present' },
+  { id: 'att3', courseId: '1', date: '2024-09-29', classType: 'Lecture', status: 'Present' },
+  { id: 'att4', courseId: '1', date: '2024-09-30', classType: 'Lecture', status: 'Not Taken' },
+  { id: 'att5', courseId: '1', date: '2024-10-06', classType: 'Lecture', status: 'Absent' },
+  { id: 'att6', courseId: '1', date: '2024-10-07', classType: 'Lecture', status: 'Present' },
+  // { id: 'att7', courseId: '1', date: '2024-10-13', classType: 'Lecture', status: 'Present' }, // Today or future
+  
+  // Finance
+  { id: 'att8', courseId: '2', date: '2024-09-22', classType: 'Lecture', status: 'Present' },
+  { id: 'att9', courseId: '2', date: '2024-09-24', classType: 'Lecture', status: 'Present' },
+  { id: 'att10', courseId: '2', date: '2024-09-29', classType: 'Lecture', status: 'Absent' },
+  { id: 'att11', courseId: '2', date: '2024-10-01', classType: 'Lecture', status: 'Present' },
+  { id: 'att12', courseId: '2', date: '2024-10-06', classType: 'Lecture', status: 'Present' },
+  { id: 'att13', courseId: '2', date: '2024-10-08', classType: 'Lecture', status: 'Present' },
+
+  // Marketing
+  { id: 'att14', courseId: '3', date: '2024-09-23', classType: 'Lecture', status: 'Excused' },
+  { id: 'att15', courseId: '3', date: '2024-09-25', classType: 'Lecture', status: 'Present' },
+  { id: 'att16', courseId: '3', date: '2024-09-30', classType: 'Lecture', status: 'Present' },
+  { id: 'att17', courseId: '3', date: '2024-10-02', classType: 'Lecture', status: 'Present' },
+  { id: 'att18', courseId: '3', date: '2024-10-07', classType: 'Lecture', status: 'Present' },
+];
+
 
 export const mockCaseStudies: CaseStudySummary[] = [
     { id: 'cs1', title: "Netflix's International Expansion", subject: 'Global Strategy', lastUpdated: '2024-07-28' },
@@ -42,20 +101,7 @@ export const mockObjectives: Objective[] = [
     }
 ];
 
-export const mockJournalEntries = [
+export const mockJournalEntries: JournalEntry[] = [
   { id: 'je1', date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), content: 'Today we discussed Porter\'s Five Forces in strategy class. It was interesting to apply it to the airline industry. Need to review the concept of "supplier power" more thoroughly.' },
   { id: 'je2', date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), content: 'Had an informational interview with a PM at Google. She emphasized the importance of user empathy and storytelling. It was incredibly insightful. I should focus on developing these soft skills.' },
-];
-
-
-export const mockAttendance: AttendanceRecord[] = [
-  { id: 'att1', courseId: '1', date: '2024-09-03', classType: 'Lecture', status: 'Present' },
-  { id: 'att2', courseId: '1', date: '2024-09-05', classType: 'Lecture', status: 'Present' },
-  { id: 'att3', courseId: '1', date: '2024-09-10', classType: 'Lecture', status: 'Absent' },
-  { id: 'att4', courseId: '1', date: '2024-09-12', classType: 'Lecture', status: 'Present' },
-  { id: 'att5', courseId: '2', date: '2024-09-04', classType: 'Lecture', status: 'Present' },
-  { id: 'att6', courseId: '2', date: '2024-09-06', classType: 'Discussion', status: 'Excused' },
-  { id: 'att7', courseId: '2', date: '2024-09-11', classType: 'Lecture', status: 'Present' },
-  { id: 'att8', courseId: '3', date: '2024-09-02', classType: 'Lab', status: 'Present' },
-  { id: 'att9', courseId: '3', date: '2024-09-09', classType: 'Lab', status: 'Present' },
 ];

@@ -63,7 +63,7 @@ export const CaseStudySchema = z.object({
 
 export type CaseStudyData = z.infer<typeof CaseStudySchema>;
 
-export type AttendanceStatus = 'Present' | 'Absent' | 'Excused';
+export type AttendanceStatus = 'Present' | 'Absent' | 'Not Taken' | 'Excused' | 'Future';
 export type ClassType = 'Lecture' | 'Lab' | 'Discussion';
 
 export type AttendanceRecord = {
@@ -78,7 +78,7 @@ export const AttendanceSchema = z.object({
   courseId: z.string({ required_error: 'Please select a course.' }),
   date: z.date({ required_error: 'A date is required.' }),
   classType: z.enum(['Lecture', 'Lab', 'Discussion']),
-  status: z.enum(['Present', 'Absent', 'Excused']),
+  status: z.enum(['Present', 'Absent', 'Excused', 'Not Taken']),
 });
 
 export type AttendanceData = z.infer<typeof AttendanceSchema>;
