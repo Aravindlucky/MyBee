@@ -1,11 +1,18 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { mockJournalEntries } from "@/lib/data";
+import { useEffect, useState } from "react";
 
 export default function JournalPage() {
-  const today = new Date();
+  const [today, setToday] = useState(new Date());
+
+  useEffect(() => {
+    setToday(new Date());
+  }, []);
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
