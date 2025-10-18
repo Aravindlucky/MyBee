@@ -1,4 +1,4 @@
-import type { Course, CaseStudySummary, Skill, Objective, AttendanceRecord, JournalEntry } from './types';
+import type { Course, CaseStudySummary, Skill, Objective, AttendanceRecord, JournalEntry, ClassType } from './types';
 
 export const mockCourses: Course[] = [
   { id: '1', title: 'Supply Chain Management', code: 'OPNS-612', professor: 'Dr. Chloe Davis', term: 'Fall 2024' },
@@ -102,6 +102,6 @@ export const mockObjectives: Objective[] = [
 ];
 
 export const mockJournalEntries: JournalEntry[] = [
-  { id: 'je1', date: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), content: 'Today we discussed Porter\'s Five Forces in strategy class. It was interesting to apply it to the airline industry. Need to review the concept of "supplier power" more thoroughly.' },
-  { id: 'je2', date: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), content: 'Had an informational interview with a PM at Google. She emphasized the importance of user empathy and storytelling. It was incredibly insightful. I should focus on developing these soft skills.' },
+  { id: 'je1', date: '2024-10-09T00:00:00.000Z', content: 'Today we discussed Porter\'s Five Forces in strategy class. It was interesting to apply it to the airline industry. Need to review the concept of "supplier power" more thoroughly.' },
+  { id: 'je2', date: '2024-10-08T00:00:00.000Z', content: 'Had an informational interview with a PM at Google. She emphasized the importance of user empathy and storytelling. It was incredibly insightful. I should focus on developing these soft skills.' },
 ];

@@ -71,7 +71,7 @@ export type AttendanceRecord = {
   courseId: string;
   date: string; // ISO String
   classType: ClassType;
-  status: AttendanceStatus;
+  status: Exclude<AttendanceStatus, 'Future'>;
 };
 
 export const AttendanceSchema = z.object({
