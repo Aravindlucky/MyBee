@@ -172,7 +172,8 @@ export function LockScreen({ children }: LockScreenProps) {
   )}
 </AnimatePresence>
 
-      {/* Subtle vignette (omitted for brevity) */}
+
+   {/* Subtle vignette (omitted for brevity) */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/40 mix-blend-multiply" />
     </div>
   );
