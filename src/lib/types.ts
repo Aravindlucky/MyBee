@@ -1,64 +1,99 @@
 import { z } from "zod";
 
-export type Course = {
+// --- Module Type ---
+export type Module = {
   id: string;
+  created_at: string;
   title: string;
-  code: string;
-  professor: string;
-  term: string;
+  semester: string | null;
 };
 
+// --- Course & Session Types ---
+export type Course = {
+  id: string;
+  created_at: string;
+  title: string;
+  code: string | null;
+  professor: string | null;
+  term: string | null;
+  total_scheduled_sessions: number;
+  module_id: string | null;
+  mandatory_attendance_percentage: number;
+};
+
+// --- NEW: Simplified Course type for Calendar dropdown ---
+export type CourseForCalendar = Pick<Course, 'id' | 'title' | 'code'>;
+
+
+export type AttendanceStatus = 'present' | 'absent' | 'proxy' | 'not-taken';
+
+export type Session = {
+  id: string;
+  created_at: string;
+  course_id: string;
+  date: string; // ISO string
+  status: AttendanceStatus;
+};
+
+export type CourseStats = {
+  course_id: string;
+  scheduled: number;
+  conducted: number;
+  attended: number;
+};
+
+// --- Skill Tracker Types ---
 export type Skill = {
   id: string;
+  created_at: string;
   name: string;
   type: 'Hard' | 'Soft';
-  confidence: number;
-  notes: string;
+  notes: string | null;
+  latest_confidence: number;
+};
+
+export type SkillConfidenceLog = {
+  id: string;
+  created_at: string;
+  skill_id: string;
+  confidence_level: number;
+};
+
+// --- Goal (OKR) Types ---
+export type KeyResult = {
+  id: string;
+  created_at: string;
+  objective_id: string;
+  description: string;
+  is_completed: boolean;
 };
 
 export type Objective = {
   id: string;
+  created_at: string;
   title: string;
-  semester: string;
-  keyResults: KeyResult[];
+  semester: string | null;
+  key_results: KeyResult[];
 };
 
-export type KeyResult = {
-  id: string;
-  description: string;
-  isCompleted: boolean;
-};
-
+// --- Journal Entry Type ---
 export type JournalEntry = {
   id: string;
-  date: string; // ISO string
+  created_at: string;
+  entry_date: string; // YYYY-MM-DD format
   content: string;
 };
 
-export type CaseStudySummary = {
+// --- Deadline Type ---
+export type Deadline = {
   id: string;
+  created_at: string;
+  course_id: string;
   title: string;
-  subject: string;
-  lastUpdated: string;
-}
+  due_date: string; // ISO timestamp string
+  description: string | null;
+  type: string; // 'Assignment', 'Exam', etc.
+  // Optional: Add course details if needed after joining in query
+  courses?: { title: string; code: string | null } | null;
+};
 
-export const CaseStudySchema = z.object({
-  caseTitle: z.string().min(1, { message: "Case title is required." }),
-  caseSubject: z.string().min(1, { message: "Case subject is required." }),
-  protagonist: z.string().optional(),
-  coreProblem: z.string().min(1, { message: "Core problem is required." }),
-  strengths: z.string().optional(),
-  weaknesses: z.string().optional(),
-  opportunities: z.string().optional(),
-  threats: z.string().optional(),
-  frameworks: z.array(z.string()).optional(),
-  alternativeSolutions: z.array(z.object({
-    solution: z.string().min(1, { message: "Solution cannot be empty." }),
-    pros: z.string().optional(),
-    cons: z.string().optional(),
-  })).optional(),
-  recommendation: z.string().min(1, { message: "Recommendation is required." }),
-  justification: z.string().optional(),
-});
-
-export type CaseStudyData = z.infer<typeof CaseStudySchema>;

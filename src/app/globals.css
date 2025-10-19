@@ -25,6 +25,9 @@
     --ring: 233 47% 49%;
     --radius: 0.5rem;
 
+    /* --- ADDED TEAL COLOR --- */
+    --teal: 167 82% 40%; /* #14A38B */
+
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222.2 47.4% 11.2%;
     --sidebar-primary: 233 47% 49%;
@@ -55,6 +58,9 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 233 47% 49%;
     
+    /* --- ADDED TEAL COLOR --- */
+    --teal: 167 82% 40%;
+    
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 233 47% 49%;
@@ -72,5 +78,45 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* --- SMOOTH TRANSITION ADDED HERE --- */
+    @apply transition-colors duration-300 ease-in-out;
   }
+}
+
+/* --- ADDED ANIMATION FOR PROGRESS RING --- */
+@layer utilities {
+  @keyframes progress-ring {
+    from {
+      stroke-dashoffset: 1; /* This will be circumference in JS */
+    }
+    to {
+      stroke-dashoffset: 0; /* This will be the offset in JS */
+    }
+  }
+  .animate-progress-ring {
+    animation: progress-ring 1s ease-out forwards;
+    /* We'll set the from/to values inline with CSS variables */
+  }
+
+  @keyframes flash-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .animate-flash-warning {
+    /* Apply the animation: name duration timing-function iteration-count */
+    animation: flash-warning 0.5s infinite ease-in-out;
+  }
+}
+
+
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+  }
+  20%, 22%, 24%, 55% {
+    opacity: 0.4;
+  }
+}
+.animate-flicker {
+  animation: flicker 2s infinite;
 }

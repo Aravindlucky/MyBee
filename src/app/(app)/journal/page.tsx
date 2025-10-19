@@ -1,13 +1,21 @@
-'use client';
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { JournalClient } from "@/components/journal-client";
+import { JournalEntry } from "@/lib/types";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { mockJournalEntries } from "@/lib/data";
-import { useState } from "react";
+export default async function JournalPage() {
+  const supabase = createSupabaseServerClient();
 
-export default function JournalPage() {
-  const [today] = useState(new Date());
+  // Fetch all journal entries, ordered by date descending
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .select('*')
+    .order('entry_date', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching journal entries:", error);
+  }
+
+  const entries: JournalEntry[] = data || [];
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -17,41 +25,9 @@ export default function JournalPage() {
           A private space to write a short entry every day. Connect the dots and track your growth.
         </p>
       </div>
-
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-           <Card className="rounded-xl sticky top-24">
-            <CardHeader>
-              <CardTitle>Today's Entry</CardTitle>
-              <CardDescription>
-                {today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea placeholder="What's on your mind? What did you learn today?" rows={8}/>
-            </CardContent>
-            <CardFooter>
-              <Button>Save Entry</Button>
-            </CardFooter>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-2 space-y-6">
-            <h2 className="font-headline text-2xl font-semibold">Past Entries</h2>
-            {mockJournalEntries.map((entry) => (
-                <Card key={entry.id} className="rounded-xl">
-                    <CardHeader>
-                        <CardTitle className="text-lg">
-                           {new Date(entry.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                       <p className="text-muted-foreground whitespace-pre-wrap">{entry.content}</p>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
-      </div>
+      
+      <JournalClient initialEntries={entries} />
+      
     </main>
   );
 }
