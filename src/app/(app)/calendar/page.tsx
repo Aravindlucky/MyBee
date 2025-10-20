@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { CalendarClient } from "@/components/calendar-client";
+import CalendarClient from '@/components/calendar-client'; // <-- CORRECT default import
 import { Deadline, Course } from "@/lib/types"; // Keep Course import for reference
 
 // --- NEW: Define a simpler type for the data needed by CalendarClient ---

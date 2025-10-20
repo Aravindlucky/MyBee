@@ -1,4 +1,5 @@
 import { z } from "zod";
+export type { Database } from './supabase-types'; // <-- ADD THIS LINE
 
 // --- Module Type ---
 export type Module = {
