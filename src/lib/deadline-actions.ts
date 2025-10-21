@@ -1,10 +1,14 @@
+// src/lib/deadline-actions.ts
+
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { Database } from '@/lib/types';
+import { Database, Deadline } from '@/lib/types';
+import { prioritizeDeadlines, DeadlinePriorityOutput } from '@/ai/flows/deadline-prioritizer'; // <--- NEW IMPORT
+export { toggleDeadlineCompletion, getDeadlinePrioritySummary } // <--- NEW EXPORTS
 
 // Define a schema for validation
 const DeadlineSchema = z.object({
@@ -52,6 +56,59 @@ function combineDateTime(date: Date, timeString: string | null | undefined): str
     }
 }
 
+// --- NEW ACTION: Toggle Completion Status (for Task Checklist) ---
+export async function toggleDeadlineCompletion(deadlineId: string, currentState: boolean): Promise<DeadlineFormState> {
+    const supabase = createSupabaseServerClient(cookies());
+    try {
+        const { error } = await supabase
+            .from('deadlines')
+            .update({ is_completed: !currentState })
+            .eq('id', deadlineId);
+
+        if (error) throw error;
+        revalidatePath('/(app)/calendar', 'page');
+        return { message: 'Success! Deadline completion toggled.' };
+    } catch (error: any) {
+        return { message: `Database Error: ${error.message}` };
+    }
+}
+
+// --- NEW ACTION: Get AI Priority Summary (for AI Dashboard) ---
+export async function getDeadlinePrioritySummary(deadlines: Deadline[]): Promise<{ success: boolean; data: DeadlinePriorityOutput | null; message?: string }> {
+    // 1. Filter and map non-completed deadlines for the AI prompt
+    const nonCompletedDeadlines = deadlines
+        .filter(d => !d.is_completed)
+        .map(d => ({
+            id: d.id,
+            title: d.title,
+            course: d.courses?.code || d.type, // Use course code or 'Other' type
+            dueDate: d.due_date.split('T')[0], // Extract YYYY-MM-DD
+        }))
+        .slice(0, 10); // Limit list sent to AI for token efficiency
+
+    if (nonCompletedDeadlines.length === 0) {
+        // Mock data when everything is completed
+        return { 
+            success: true, 
+            data: { 
+                overallSummary: "You have no outstanding deadlines. Take a moment to reflect and relax!",
+                prioritizedList: [],
+            },
+            message: "Success! No outstanding deadlines."
+        };
+    }
+    
+    const currentDate = new Date().toISOString().split('T')[0];
+
+    try {
+        const result = await prioritizeDeadlines({ deadlines: nonCompletedDeadlines, currentDate });
+        return { success: true, data: result };
+    } catch (error: any) {
+        console.error("AI Prioritization Error:", error);
+        return { success: false, data: null, message: error.message || "Failed to fetch AI priority summary." };
+    }
+}
+
 
 export async function addDeadline(
   prevState: DeadlineFormState,
@@ -93,6 +150,7 @@ export async function addDeadline(
     type: deadlineCategory === 'Course' ? (type || 'Coursework') : 'Other',
     description,
     course_id: courseId, // Will be null if category was 'Other'
+    is_completed: false, // <--- NEW FIELD DEFAULT
   };
 
   // Insert data into Supabase
@@ -182,3 +240,5 @@ export async function deleteDeadline(formData: FormData): Promise<DeadlineFormSt
     if (courseId) { revalidatePath(`/(app)/courses/${courseId}`, 'page'); }
     return { message: 'Success! Deadline deleted.' };
 }
+
+// Add new exports

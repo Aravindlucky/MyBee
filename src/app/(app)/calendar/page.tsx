@@ -1,9 +1,12 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CalendarClient from '@/components/calendar-client'; // <-- CORRECT default import
 import { Deadline, Course } from "@/lib/types"; // Keep Course import for reference
+// --- NEW IMPORT ---
+import { getDeadlinePrioritySummary } from '@/lib/deadline-actions';
 
 // --- NEW: Define a simpler type for the data needed by CalendarClient ---
 type CourseForCalendar = Pick<Course, 'id' | 'title' | 'code'>;
+type AIReport = Awaited<ReturnType<typeof getDeadlinePrioritySummary>>; // <--- NEW TYPE FOR AI DATA
 
 export default async function CalendarPage() {
   const supabase = createSupabaseServerClient();
@@ -34,11 +37,15 @@ export default async function CalendarPage() {
   const deadlines: Deadline[] = deadlinesData || [];
   // --- Use the simpler type here ---
   const courses: CourseForCalendar[] = coursesData || [];
+  
+  // --- NEW: Fetch AI Summary ---
+  const aiSummary = await getDeadlinePrioritySummary(deadlines);
+  // --- END NEW ---
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       {/* Pass the correctly typed courses data */}
-      <CalendarClient initialDeadlines={deadlines} courses={courses} />
+      <CalendarClient initialDeadlines={deadlines} courses={courses} aiSummary={aiSummary} /> {/* <-- PASS AI SUMMARY */}
     </main>
   );
 }

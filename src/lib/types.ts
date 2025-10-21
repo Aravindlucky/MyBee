@@ -1,5 +1,5 @@
 import { z } from "zod";
-export type { Database } from './supabase-types'; // <-- ADD THIS LINE
+export type { Database } from './supabase-types';
 
 // --- Module Type ---
 export type Module = {
@@ -96,5 +96,5 @@ export type Deadline = {
   type: string; // 'Assignment', 'Exam', etc.
   // Optional: Add course details if needed after joining in query
   courses?: { title: string; code: string | null } | null;
+  is_completed: boolean; // <--- NEW FIELD
 };
-

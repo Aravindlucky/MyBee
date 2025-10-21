@@ -5,7 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg, EventInput } from '@fullcalendar/core';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Zap, Clock, List, CheckCircle, XCircle } from 'lucide-react'; // <--- UPDATED ICONS
 import { format, parseISO } from 'date-fns';
 
 // Shadcn UI Imports - Make sure you have these installed
@@ -40,6 +40,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // <--- NEW IMPORT
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'; // <--- NEW IMPORT
+import { Progress } from '@/components/ui/progress'; // <--- NEW IMPORT
+import { Badge } from '@/components/ui/badge'; // <--- NEW IMPORT
 
 // Custom Hooks & Utils
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +55,8 @@ import {
   addDeadline,
   updateDeadline,
   deleteDeadline,
+  toggleDeadlineCompletion, // <--- NEW ACTION IMPORTED
+  getDeadlinePrioritySummary, // <--- TYPE REFERENCE
   type DeadlineFormState,
 } from '@/lib/deadline-actions';
 import { type Course, type Deadline } from '@/lib/types';
@@ -58,17 +64,21 @@ import { type Course, type Deadline } from '@/lib/types';
 // React DOM Hooks
 import { useFormState, useFormStatus } from 'react-dom';
 
+// --- NEW TYPE FOR AI SUMMARY PROP ---
+type AIReport = Awaited<ReturnType<typeof getDeadlinePrioritySummary>>;
+
 // Props for the main client component
 interface CalendarClientProps {
   initialDeadlines: Deadline[];
   courses: Course[];
+  aiSummary: AIReport; // <--- NEW PROP
 }
 
 // --- Helper Functions ---
 
 // Helper to format deadline title including time if available
 const formatEventTitle = (deadline: Deadline): string => {
-  const coursePrefix = deadline.course?.code ? `[${deadline.courses.code}] ` : '';
+  const coursePrefix = deadline.courses?.code ? `[${deadline.courses.code}] ` : '';
   let timeSuffix = '';
   // Check if due_time exists and is a valid HH:MM or HH:MM:SS string
   if (deadline.due_time && /^[0-2][0-9]:[0-5][0-9](:[0-5][0-9])?$/.test(deadline.due_time)) {
@@ -85,20 +95,31 @@ const formatEventTitle = (deadline: Deadline): string => {
     }
   }
   // Use course title from fetched relation if available, otherwise check type from deadline object
-  const title = deadline.course?.title ?? deadline.title; // Adjust if your Course type uses 'name'
-  return `${coursePrefix}${title}${timeSuffix}`;
+  const title = deadline.courses?.title ?? deadline.title; // Adjust if your Course type uses 'name'
+  
+  // --- ADD COMPLETED STATUS TO TITLE ---
+  const completionPrefix = deadline.is_completed ? '✅ ' : '';
+  
+  return `${completionPrefix}${coursePrefix}${title}${timeSuffix}`;
 };
 
 // --- Main Calendar Client Component ---
 
-export default function CalendarClient({ initialDeadlines, courses }: CalendarClientProps) {
+export default function CalendarClient({ initialDeadlines, courses, aiSummary }: CalendarClientProps) {
   const [events, setEvents] = useState<EventInput[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Deadline | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogDate, setDialogDate] = useState<Date | null>(null);
   const { toast } = useToast();
-  const isMobile = useIsMobile(); // Use corrected hook name
+  const isMobile = useIsMobile();
+  const [isPending, startTransition] = React.useTransition(); // For toggle action
+
+  // --- NEW: Calculate Completion Stats ---
+  const totalDeadlines = initialDeadlines.length;
+  const completedDeadlines = initialDeadlines.filter(d => d.is_completed).length;
+  const completionPercentage = totalDeadlines > 0 ? (completedDeadlines / totalDeadlines) * 100 : 100;
+  // --- END NEW STATS ---
 
   // Map initialDeadlines to FullCalendar events
   useEffect(() => {
@@ -108,10 +129,8 @@ export default function CalendarClient({ initialDeadlines, courses }: CalendarCl
       start: d.due_date, // Base date
       allDay: !d.due_time, // Event is allDay if due_time is NULL
       extendedProps: d,
-      // Optional: Add specific start time for non-allDay events
-      // start: d.due_time ? combineDateAndTime(parseISO(d.due_date), d.due_time).toISOString() : d.due_date,
-       // Example color coding
-       color: d.course_id ? '#3788d8' : '#6c757d', // Blue for course, Gray for other
+       // Color coding based on completion status
+       color: d.is_completed ? '#36B37E' : (d.course_id ? '#3788d8' : '#6c757d'), // Green for completed tasks/deadlines
        textColor: '#ffffff'
     }));
     setEvents(mappedEvents);
@@ -135,15 +154,142 @@ export default function CalendarClient({ initialDeadlines, courses }: CalendarCl
       setIsSheetOpen(false);
       setDialogDate(null);
       setSelectedEvent(null);
-      // NOTE: Server action revalidation should automatically refresh data.
-      // If not, you might need a manual refresh trigger here.
+      // Data refresh is handled by server action revalidation
     } else {
       toast({ variant: 'destructive', title: 'Error', description: message || 'An unknown error occurred.' });
     }
   };
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-4 md:p-6 space-y-8">
+      
+       {/* --- AI DEADLINE DASHBOARD (NEW SECTION) --- */}
+      <section className="space-y-4">
+        <h2 className="font-headline text-3xl md:text-4xl font-bold flex items-center gap-2">
+            <Zap className="h-7 w-7 text-primary" /> Deadline Command Center
+        </h2>
+        <p className="text-muted-foreground max-w-2xl text-lg mt-2">
+           Schedule and prioritize your academic and personal deadlines.
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
+          
+          {/* 1. AI Summary Card (Large Card) */}
+          <Card className="lg:col-span-2 rounded-xl bg-primary/5">
+            <CardHeader className='flex flex-row items-start space-y-0'>
+                <Clock className="h-6 w-6 text-primary mr-3 mt-1 shrink-0" />
+                <div className='flex-1'>
+                    <CardTitle className="text-xl">Your Weekly Focus</CardTitle>
+                    <CardDescription className='pt-1'>
+                        Intelligent analysis of your upcoming academic load.
+                    </CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Alert variant="default" className='border-primary/50 bg-primary/10 text-primary-foreground'>
+                    <AlertTitle className="text-primary font-bold">Action Plan</AlertTitle>
+                    <AlertDescription className='text-sm text-foreground'>
+                        {aiSummary.data?.overallSummary || aiSummary.message || "Failed to generate AI summary."}
+                    </AlertDescription>
+                </Alert>
+            </CardContent>
+          </Card>
+
+          {/* 2. Burn-Down/Completion Card (Small Card) */}
+          <Card className="rounded-xl flex flex-col justify-between">
+             <CardHeader className='pb-2'>
+                <CardTitle className="text-lg">Deadlines Completed</CardTitle>
+             </CardHeader>
+             <CardContent>
+                <div className='flex items-center gap-4'>
+                    <Progress value={completionPercentage} className="h-2 flex-1" />
+                    <span className="font-bold text-xl text-primary">{Math.round(completionPercentage)}%</span>
+                </div>
+                <p className='text-sm text-muted-foreground mt-2'>
+                    {completedDeadlines} of {totalDeadlines} items complete.
+                </p>
+             </CardContent>
+          </Card>
+        </div>
+
+        {/* 3. Top 3 Prioritized List */}
+        {aiSummary.data?.prioritizedList.length > 0 && (
+            <Card className="rounded-xl">
+                 <CardHeader className='pb-2'>
+                    <CardTitle className="text-xl flex items-center gap-2"><List className='h-5 w-5 text-accent'/> Top Priority List</CardTitle>
+                    <CardDescription>Focus on these items first.</CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                    <div className="space-y-3">
+                    {aiSummary.data.prioritizedList.map(item => {
+                        const deadline = initialDeadlines.find(d => d.id === item.id);
+                        if (!deadline || deadline.is_completed) return null;
+                        
+                        const priorityColor = 
+                            item.priority === 'High' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/80' : 
+                            item.priority === 'Medium' ? 'bg-accent text-accent-foreground hover:bg-accent/80' : 
+                            'bg-primary text-primary-foreground hover:bg-primary/80';
+                            
+                        const date = deadline.due_date ? format(parseISO(deadline.due_date), 'MMM do') : 'TBD';
+
+                        return (
+                             <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-secondary/30 transition-colors">
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium truncate">{deadline.title}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {deadline.courses?.code || deadline.type} • Due {date}
+                                    </p>
+                                </div>
+                                <Badge className={cn("text-xs w-16 justify-center", priorityColor)}>
+                                    {item.priority}
+                                </Badge>
+                             </div>
+                        );
+                    })}
+                    </div>
+                 </CardContent>
+            </Card>
+        )}
+      </section>
+      {/* --- END AI DEADLINE DASHBOARD --- */}
+      
+      {/* --- Task Checklist (For is_completed demonstration) --- */}
+      {initialDeadlines.filter(d => !d.course_id).length > 0 && (
+          <section className="space-y-4">
+              <h2 className="font-headline text-2xl font-bold flex items-center gap-2">
+                  <CheckCircle className="h-6 w-6 text-primary" /> General Task Checklist
+              </h2>
+              <Card className="rounded-xl">
+                  <CardContent className="py-4 space-y-2">
+                      {initialDeadlines.filter(d => !d.course_id).map((task) => (
+                           <div key={task.id} className={cn("flex items-center space-x-3 p-3 rounded-md", task.is_completed ? "bg-secondary/40" : "hover:bg-secondary/30")}>
+                               <Checkbox
+                                   id={`task-${task.id}`}
+                                   checked={task.is_completed}
+                                   onCheckedChange={() => startTransition(async () => {
+                                       await toggleDeadlineCompletion(task.id, task.is_completed);
+                                       // NOTE: The server action revalidates the path, triggering a full refresh.
+                                   })}
+                                   disabled={isPending}
+                               />
+                               <label
+                                   htmlFor={`task-${task.id}`}
+                                   className={cn(
+                                       "text-sm font-medium leading-none flex-1",
+                                       task.is_completed && "line-through text-muted-foreground"
+                                   )}
+                               >
+                                   {task.title} 
+                                   <span className='ml-2 text-xs'> (Due: {task.due_date.split('T')[0]})</span>
+                               </label>
+                           </div>
+                       ))}
+                  </CardContent>
+              </Card>
+          </section>
+      )}
+      {/* --- END Task Checklist --- */}
+
+
       <div className="mb-4 flex justify-end">
         {/* Add Deadline Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -200,7 +346,7 @@ export default function CalendarClient({ initialDeadlines, courses }: CalendarCl
   );
 }
 
-// --- Deadline Form Component ---
+// --- Deadline Form Component (No functional changes from previous state) ---
 interface DeadlineFormProps {
   courses: Course[];
   deadline?: Deadline | null;
@@ -245,10 +391,15 @@ function DeadlineForm({ courses, deadline, initialDate, onFormActionComplete }: 
   const handleDateSelect = (selectedDate: Date | undefined) => { setDate(selectedDate); };
 
   // Helper to find error message for a specific field path
-  const getFieldError = (fieldName: keyof typeof DeadlineSchema.shape): string | undefined => {
+  // NOTE: This helper relies on the Zod schema definition in deadline-actions.ts
+  type DeadlineSchemaShape = {
+    title: any; dueDate: any; dueTime: any; type: any; description: any; courseId: any; deadlineCategory: any;
+  };
+  const getFieldError = (fieldName: keyof DeadlineSchemaShape): string | undefined => {
     // Zod issues have a 'path' array. We check if our fieldName is in that path.
     return state.errors?.find(e => e.path.includes(fieldName))?.message;
   };
+
 
   return (
     // Use grid layout for better alignment
@@ -457,22 +608,6 @@ function DeleteDeadlineButton({ deadlineId, courseId, onComplete }: { deadlineId
 
     return (
         <>
-            {/* If using AlertDialog */}
-            {/* <AlertDialog>
-                <AlertDialogTrigger asChild>
-                     <Button type="button" variant="destructive" disabled={isPending}>
-                        {isPending ? 'Deleting...' : 'Delete'}
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                     <AlertDialogHeader>...</AlertDialogHeader>
-                     <AlertDialogFooter>
-                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                         <AlertDialogAction onClick={handleDelete}>Confirm Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog> */}
-
              {/* Simple button if no confirmation needed */}
              <Button type="button" variant="destructive" onClick={handleDelete} disabled={isPending}>
                  {isPending ? 'Deleting...' : 'Delete'}
@@ -484,11 +619,3 @@ function DeleteDeadlineButton({ deadlineId, courseId, onComplete }: { deadlineId
         </>
     );
 }
-
-// Helper (Optional - if you need to combine date/time for FullCalendar start property)
-// function combineDateAndTime(date: Date, timeString: string): Date {
-//   const [hours, minutes] = timeString.split(':').map(Number);
-//   const newDate = new Date(date);
-//   newDate.setHours(hours, minutes, 0, 0);
-//   return newDate;
-// }
